@@ -1,0 +1,90 @@
+module robo_ant(
+    input i_right_hand,
+    input i_left_hand,
+    input i_clk,
+    input i_rst,
+    output reg o_go_forward,
+    output reg o_right_turn,
+    output reg o_left_turn
+    );
+    
+    reg [1:0] r_present_state, r_next_state;
+    
+    parameter LOST_IN_SPACE = 2'b00;            
+    parameter ROTATE_ANTI_CLOCKWISE = 2'b01;    
+    parameter WALL1 = 2'b11;                
+    parameter WALL2 = 2'b10;
+    
+    always@ (posedge i_clk or negedge i_rst) begin
+        if (~i_rst) begin
+            r_present_state <= LOST_IN_SPACE;
+        end
+        else begin
+            r_present_state <= r_next_state;
+        end  
+    end
+    
+    always@ (*) begin
+        case (r_present_state)
+        LOST_IN_SPACE :         begin
+                                    if ((i_right_hand == 1'b1) || (i_left_hand == 1'b1))
+                                        r_next_state = ROTATE_ANTI_CLOCKWISE;
+                                    else
+                                        r_next_state = LOST_IN_SPACE;
+                                end
+        ROTATE_ANTI_CLOCKWISE : begin
+                                    if ((i_right_hand == 1'b1) || (i_left_hand == 1'b1))
+                                        r_next_state = ROTATE_ANTI_CLOCKWISE;
+                                    else
+                                        r_next_state = WALL1;
+                                end
+        WALL1 :                 begin
+                                    if (i_right_hand == 1'b1)
+                                        r_next_state = WALL2;
+                                    else
+                                        r_next_state = WALL1;
+                                end
+        WALL2 :                 begin
+                                    if (i_right_hand == 1'b1 && i_left_hand == 1'b0)
+                                        r_next_state = WALL2;
+                                    else if ((i_right_hand == 1'b0) && (i_left_hand == 1'b0))
+                                        r_next_state = WALL1;                                                                               
+                                    else 
+                                        r_next_state = ROTATE_ANTI_CLOCKWISE;
+                                end
+        endcase
+    end
+    
+    always@ (*) begin
+        case (r_present_state)
+        LOST_IN_SPACE :         begin  // Action: Go forward until hit something
+                                    if (~i_rst) begin
+                                        o_go_forward = 1'b0;
+                                        o_right_turn = 1'b0;
+                                        o_left_turn  = 1'b0;                               
+                                    end
+                                    else begin
+                                        o_go_forward = 1'b1;
+                                        o_right_turn = 1'b0;
+                                        o_left_turn  = 1'b0;
+                                    end
+                                end
+        ROTATE_ANTI_CLOCKWISE : begin  // Action: Turn Left until don't touch anymore
+                                    o_go_forward = 1'b0;
+                                    o_right_turn = 1'b0;
+                                    o_left_turn  = 1'b1;    
+                                end
+        WALL1 :                 begin  // Action: Step forward and turn right a little to look for a wall
+                                    o_go_forward = 1'b1;
+                                    o_right_turn = 1'b1;
+                                    o_left_turn  = 1'b0;    
+                                end                    
+        WALL2 :                 begin  // Step forward and turn left till not touching
+                                    o_go_forward = 1'b1;
+                                    o_right_turn = 1'b0;
+                                    o_left_turn  = 1'b1;    
+                                end                    
+        endcase
+    end
+    
+endmodule
