@@ -20,5 +20,9 @@ The robot will take a left turn and move forward until its right hand touches an
 If neither hand touches an object, it will return to State3.
 If the left hand touches an object, it will transition back to State2.
 
+Motivation behind the creation of this project: https://www.youtube.com/playlist?list=PLUl4u3cNGP62WVs95MNq3dQBqY2vGOtQ2
+https://www.youtube.com/watch?v=luHnuoDkAtU&t=258s
+https://www.youtube.com/watch?v=Ht_tyuAWmpM&t=262s
+
 Note: Signals need to be driven very carefully, otherwise will get wrong resuls.
 
